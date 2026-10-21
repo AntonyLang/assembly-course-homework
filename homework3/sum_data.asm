@@ -1,4 +1,3 @@
-; Keep the running total in a word in the data segment.
 .8086
 .model small
 .stack 100h

@@ -1,7 +1,3 @@
-; 8086 DOS helpers. Call after initializing DS to @data.
-; Input routines expect valid input in the range documented by each program.
-
-; Print the unsigned word in AX as decimal. Preserve general registers.
 print_decimal proc near
     push bx
     mov bx, 10
@@ -10,7 +6,6 @@ print_decimal proc near
     ret
 print_decimal endp
 
-; Print the unsigned word in AX in uppercase hexadecimal, no prefix.
 print_hex proc near
     push bx
     mov bx, 16
@@ -19,24 +14,23 @@ print_hex proc near
     ret
 print_hex endp
 
-; AX=value, BX=base (10 or 16). Remainders are reversed on the stack.
 print_unsigned proc near
     push ax
     push cx
     push dx
     xor cx, cx
 divide_digit:
-    xor dx, dx             ; DIV uses DX:AX, not AX alone.
-    div bx                 ; AX=quotient, DX=remainder.
+    xor dx, dx
+    div bx                  ; AX = quotient, DX = remainder
     push dx
     inc cx
     cmp ax, 0
-    jne divide_digit       ; Execute at least once, so zero prints as "0".
+    jne divide_digit
 output_digit:
     pop dx
     cmp dl, 9
     jbe numeric_digit
-    add dl, 'A'-10         ; Values 10..15 map to A..F.
+    add dl, 'A'-10
     jmp short emit_digit
 numeric_digit:
     add dl, '0'
@@ -63,19 +57,17 @@ print_newline proc near
     ret
 print_newline endp
 
-; DS:DX points to a DOS AH=0Ah line buffer.
-; Return its unsigned decimal value (0..65535) in AX.
 read_decimal proc near
     mov ah, 0ah
     int 21h
     mov si, dx
     xor cx, cx
-    mov cl, [si+1]         ; Number of input characters, excluding CR.
+    mov cl, [si+1]          ; Input length
     add si, 2
     xor ax, ax
     mov bx, 10
 read_digit:
-    mul bx                 ; value = old value * 10 + next digit.
+    mul bx
     xor dx, dx
     mov dl, [si]
     sub dl, '0'

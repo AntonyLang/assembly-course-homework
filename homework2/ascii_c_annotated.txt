@@ -1,14 +1,7 @@
-作业题目 2 第 3 小题：实际 C 程序反汇编及注释
-来源：objdump -d -M intel --disassemble=main ascii_c.exe
-编译器：MSYS2 GCC 15.2.0；目标：x86_64-w64-mingw32；优化：-O0
-本文件为反汇编阅读材料，包含地址、机器码、中文注释，不能直接作为 .asm 汇编。
+ASCII 表：main 反汇编
+GCC 15.2.0，Windows x64，-O0。
+[rbp-4]: letter；[rbp-8]: row；[rbp-0Ch]: column。
 
-栈中变量：
-  DWORD PTR [rbp-0x4] = letter，当前字母的 ASCII 码
-  DWORD PTR [rbp-0x8] = row，行下标 0..1
-  DWORD PTR [rbp-0xc] = column，列下标 0..12
-
-0000000140001490 <main>:
 140001490: 55                    push rbp                         ; 保存调用者的帧指针
 140001491: 48 89 e5              mov rbp,rsp                      ; 建立当前函数的栈帧
 140001494: 48 83 ec 30           sub rsp,0x30                     ; 分配 48 字节：含 32 字节参数影子空间、局部变量和对齐空间
@@ -41,10 +34,3 @@
 1400014fd: 90                    nop                              ; 代码对齐填充
 1400014fe: 90                    nop                              ; 代码对齐填充
 1400014ff: 90                    nop                              ; 代码对齐填充
-
-观察：
-1. 两个 for 循环被翻译为初始化、CMP、条件跳转和自增指令。
-2. 这里没有生成 LOOP 指令；编译器使用 JLE/JG 等条件跳转。
-3. ECX 在这里用于传递函数参数，不能当成课程程序中的 CX 循环计数器。
-4. 当前地址对应上述编译器、编译选项与源码；修改源码或工具版本后应重新查看反汇编。
-5. 前两题是 16 位 DOS 程序，采用 INT 21h；本题是 64 位 Windows C 程序，采用 C 运行库的 putchar。

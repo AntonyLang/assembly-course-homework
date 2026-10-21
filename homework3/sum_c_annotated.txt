@@ -1,12 +1,7 @@
-作业 3：C 语言输入 n，累加 1..n；实际 main 反汇编逐条注释
-编译器：GCC 15.2.0，-O0；目标：Windows x86-64（不是 16 位 DOS）
-生成命令：objdump -d -M intel --disassemble=main sum_c.exe
-原始输出：sum_c_disassembly.txt；本文件仅作阅读材料。
+1 到 n 求和：main 反汇编
+GCC 15.2.0，Windows x64，-O0。
+[rbp-4]: i；[rbp-8]: total；[rbp-0Ch]: n。
 
-局部变量：DWORD [rbp-0x4] 为 i，DWORD [rbp-0x8] 为 total，DWORD [rbp-0xc] 为 n。
-Windows x64：第一个参数经 RCX 传递，第二个经 RDX 传递。
-
-0000000140001490 <main>:
 140001490: 55                    push rbp                         ; 保存调用者的帧指针
 140001491: 48 89 e5              mov rbp,rsp                      ; 建立当前函数栈帧
 140001494: 48 83 ec 30           sub rsp,0x30                     ; 为局部变量、32 字节影子空间和对齐预留栈空间
@@ -38,11 +33,3 @@ Windows x64：第一个参数经 RCX 传递，第二个经 RDX 传递。
 1400014fd: 90                    nop                              ; 对齐填充
 1400014fe: 90                    nop                              ; 对齐填充
 1400014ff: 90                    nop                              ; 对齐填充
-
-源码对应关系：
-1. i=1 → 1490 后的初始化块，实际设置 i 的指令位于 14C6。
-2. i<=n → 14D9 / 14DC / 14DF，CMP 与 JLE 控制重复。
-3. total+=i → 14CF / 14D2；++i → 14D5。
-4. n=100 时循环执行 100 次，得到 5050；n=1 时只累加一次，得到 1。
-5. 编译器没有生成 LOOP；汇编语言可用不同指令组合实现同一循环语义。
-6. 修改源码或编译器后，地址、机器码及栈布局可能变化，应重新生成和核对反汇编。

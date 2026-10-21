@@ -1,4 +1,3 @@
-; Extra task: unsigned decimal 0..65535 -> uppercase hexadecimal.
 .8086
 .model small
 .stack 100h

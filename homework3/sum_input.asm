@@ -1,11 +1,10 @@
-; Input n in 1..100, print 1+2+...+n in decimal.
 .8086
 .model small
 .stack 100h
 .data
     prompt db 'Input n (1..100): $'
     result db 'Sum: $'
-    buffer db 4, 0, 4 dup(0) ; Max three digits plus DOS's final CR.
+    buffer db 4, 0, 4 dup(0)
 .code
 start:
     mov ax, @data
@@ -23,7 +22,7 @@ sum_loop:
     inc bx
     loop sum_loop
     call print_newline
-    push ax                 ; DOS AH=09h uses AX; preserve the computed sum.
+    push ax                 ; Save sum
     mov dx, offset result
     mov ah, 09h
     int 21h

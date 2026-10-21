@@ -1,4 +1,3 @@
-; Basic sum 1..100. Keep the running total in register AX.
 .8086
 .model small
 .stack 100h

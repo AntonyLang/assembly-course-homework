@@ -1,4 +1,3 @@
-/* Homework 2 (3): a-z, two rows with thirteen letters each. */
 #include <stdio.h>
 
 int main(void)

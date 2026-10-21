@@ -1,6 +1,0 @@
-JWlink Version 2.0
-Portions Copyright (c) 1985-2002 Sybase, Inc. All Rights Reserved.
-Source code is available under the Sybase Open Watcom Public License.
-loading object files
-creating map file
-creating a DOS executable

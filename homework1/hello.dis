@@ -1,9 +1,0 @@
--u cs:0 10
-0E02:0000 B8030E            MOV     AX,0E03
-0E02:0003 8ED8              MOV     DS,AX
-0E02:0005 BA0200            MOV     DX,0002
-0E02:0008 B409              MOV     AH,09
-0E02:000A CD21              INT     21
-0E02:000C B8004C            MOV     AX,4C00
-0E02:000F CD21              INT     21
--q

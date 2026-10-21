@@ -1,4 +1,3 @@
-; Input one or two hex digits (0..FF), accepting a..f and A..F.
 .8086
 .model small
 .stack 100h
@@ -24,16 +23,16 @@ parse_hex:
     mov al, [si]
     cmp al, '9'
     jbe decimal_digit
-    and al, 0dfh            ; Lowercase a..f -> uppercase A..F.
+    and al, 0dfh            ; a..f -> A..F
     sub al, 'A'-10
     jmp short append_digit
 decimal_digit:
     sub al, '0'
 append_digit:
-    shl bx, 1               ; Original 8086 accepts shift count 1 (or CL).
     shl bx, 1
     shl bx, 1
-    shl bx, 1               ; old value * 16.
+    shl bx, 1
+    shl bx, 1
     xor ah, ah
     add bx, ax
     inc si

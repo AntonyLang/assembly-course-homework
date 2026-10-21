@@ -1,4 +1,3 @@
-; Homework 1: assemble to OMF .OBJ, then link to DOS .EXE.
 .8086
 .model small
 .stack 100h

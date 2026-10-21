@@ -1,4 +1,3 @@
-/* Homework 3: valid input is one decimal integer n in 1..100. */
 #include <stdio.h>
 
 int main(void)
