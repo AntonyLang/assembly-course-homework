@@ -1,0 +1,31 @@
+{
+  "result": "PASS",
+  "assembly_target": "8086 / 16-bit DOS MZ",
+  "c_target": "x86_64-w64-mingw32",
+  "dos_execution_cases": 648,
+  "c_execution_cases": 101,
+  "coverage": {
+    "hello": "OMF assembly + separate DOS link + execution + DEBUG disassembly",
+    "debug_memory": "DEBUG E writes code and data, executes Hello world",
+    "ascii": "LOOP, conditional jumps, C; exact 54-byte identical output",
+    "sum_storage": "register, data segment, stack: all print 5050",
+    "sum_input": "all n=1..100 for both DOS assembly and C",
+    "hex_to_decimal": "all 00..FF upper/lowercase, single digits 0..f",
+    "decimal_to_hex": [
+      0,
+      1,
+      9,
+      10,
+      15,
+      16,
+      99,
+      100,
+      255,
+      256,
+      5050,
+      32767,
+      32768,
+      65535
+    ]
+  }
+}

@@ -1,0 +1,98 @@
+JWasm v2.20, Oct  9 2026
+ascii_jump.asm
+                                ; Homework 2 (2): the same output, using conditional jumps, without LOOP.
+                                .8086
+                                .model small
+                                .stack 100h
+
+0000                            .data
+0000 0D0A24                         newline db 0dh, 0ah, '$'
+
+0000                            .code
+0000                            start:
+0000 B8 0000s                       mov ax, DGROUP
+0003 8ED8                           mov ds, ax
+0005 B361                           mov bl, 'a'
+0007 BE0200                         mov si, 2               ; SI counts rows; DI counts columns independently.
+
+000A                            row_loop:
+000A BF0D00                         mov di, 13
+
+000D                            column_loop:
+000D 8AD3                           mov dl, bl
+000F B402                           mov ah, 02h
+0011 CD21                           int 21h
+0013 FEC3                           inc bl
+
+0015 83FF01                         cmp di, 1
+0018 7406                           je no_space             ; ZF=1 when this is the last column.
+001A B220                           mov dl, ' '
+001C B402                           mov ah, 02h
+001E CD21                           int 21h
+
+0020                            no_space:
+0020 4F                             dec di                  ; Unlike LOOP, DEC updates ZF.
+0021 75EA                           jnz column_loop         ; ZF=0 means there are more letters in this row.
+
+0023 BA 0000o                       mov dx, offset newline
+0026 B409                           mov ah, 09h
+0028 CD21                           int 21h
+002A 4E                             dec si
+002B 75DD                           jnz row_loop            ; Continue until both rows have been printed.
+
+002D B8004C                         mov ax, 4c00h
+0030 CD21                           int 21h
+                                end start
+
+
+Binary Map:
+
+Segment                  Pos(file)     RVA  Size(fil) Size(mem)
+---------------------------------------------------------------
+<header>                        0        0        30         0
+_TEXT                          30        0        32        32
+_DATA                          62        2         3         3
+STACK                           0       10         0       100
+---------------------------------------------------------------
+                                                  65       140
+
+
+Macros:
+
+                N a m e                 Type
+
+@CatStr  . . . . . . . . . . . .        Func
+@Environ . . . . . . . . . . . .        Func
+@InStr . . . . . . . . . . . . .        Func
+@SizeStr . . . . . . . . . . . .        Func
+@SubStr  . . . . . . . . . . . .        Func
+
+
+Segments and Groups:
+
+                N a m e                 Size     Length   Align   Combine Class
+
+_TEXT  . . . . . . . . . . . . .        16 Bit   0032     Word    Public  'CODE'
+DGROUP . . . . . . . . . . . . .        GROUP
+_DATA  . . . . . . . . . . . . .        16 Bit   0003     Word    Public  'DATA'
+STACK  . . . . . . . . . . . . .        16 Bit   0100     Para    Stack   'STACK'
+
+
+Symbols:
+
+                N a m e                 Type       Value     Attr
+
+@CodeSize  . . . . . . . . . . .        Number             0h 
+@DataSize  . . . . . . . . . . .        Number             0h 
+@Interface . . . . . . . . . . .        Number             0h 
+@Model . . . . . . . . . . . . .        Number             2h 
+@code  . . . . . . . . . . . . .        Text   _TEXT
+@data  . . . . . . . . . . . . .        Text   DGROUP
+@stack . . . . . . . . . . . . .        Text   DGROUP
+column_loop  . . . . . . . . . .        L Near             Dh _TEXT 
+newline  . . . . . . . . . . . .        Byte[3]            0h _DATA 
+no_space . . . . . . . . . . . .        L Near            20h _TEXT 
+row_loop . . . . . . . . . . . .        L Near             Ah _TEXT 
+start  . . . . . . . . . . . . .        L Near             0h _TEXT Public 
+
+ascii_jump.asm: 43 lines, 2 passes, 1 ms, 0 warnings, 0 errors

@@ -1,0 +1,20 @@
+# Portable dependencies, downloaded archives, and private local scratch files.
+/tools/
+/tmp/
+/build/
+__pycache__/
+*.pyc
+*.log
+
+# Earlier machine-specific assignment-2 report and runner remain local.
+/homework2/作业题目2.md
+/homework2/build.py
+/homework2/verification.json
+/homework2/verify.bat
+/homework2/checkrun.bat
+/homework2/dosbox-verify.conf
+/homework2/STATUS.TXT
+/homework2/hello.*
+/homework2/*.dbg
+
+# The assignment explicitly requires EXE files: keep program binaries tracked.

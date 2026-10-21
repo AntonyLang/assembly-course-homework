@@ -1,0 +1,73 @@
+-u cs:0 87
+0E02:0000 B80A0E            MOV     AX,0E0A
+0E02:0003 8ED8              MOV     DS,AX
+0E02:0005 33C0              XOR     AX,AX
+0E02:0007 BB0100            MOV     BX,0001
+0E02:000A B96400            MOV     CX,0064
+0E02:000D 03C3              ADD     AX,BX
+0E02:000F 43                INC     BX
+0E02:0010 E2FB              LOOPW   000D
+0E02:0012 E80800            CALL    001D
+0E02:0015 E83F00            CALL    0057
+0E02:0018 B8004C            MOV     AX,4C00
+0E02:001B CD21              INT     21
+0E02:001D 53                PUSH    BX
+0E02:001E BB0A00            MOV     BX,000A
+0E02:0021 E80B00            CALL    002F
+0E02:0024 5B                POP     BX
+0E02:0025 C3                RET
+0E02:0026 53                PUSH    BX
+0E02:0027 BB1000            MOV     BX,0010
+0E02:002A E80200            CALL    002F
+0E02:002D 5B                POP     BX
+0E02:002E C3                RET
+0E02:002F 50                PUSH    AX
+0E02:0030 51                PUSH    CX
+0E02:0031 52                PUSH    DX
+0E02:0032 33C9              XOR     CX,CX
+0E02:0034 33D2              XOR     DX,DX
+0E02:0036 F7F3              DIV     BX
+0E02:0038 52                PUSH    DX
+0E02:0039 41                INC     CX
+0E02:003A 83F800            CMP     AX,+00
+0E02:003D 75F5              JNZ     0034
+0E02:003F 5A                POP     DX
+0E02:0040 80FA09            CMP     DL,09
+0E02:0043 7605              JBE     004A
+0E02:0045 80C237            ADD     DL,37
+0E02:0048 EB03              JMP     004D
+0E02:004A 80C230            ADD     DL,30
+0E02:004D B402              MOV     AH,02
+0E02:004F CD21              INT     21
+0E02:0051 E2EC              LOOPW   003F
+0E02:0053 5A                POP     DX
+0E02:0054 59                POP     CX
+0E02:0055 58                POP     AX
+0E02:0056 C3                RET
+0E02:0057 50                PUSH    AX
+0E02:0058 52                PUSH    DX
+0E02:0059 B20D              MOV     DL,0D
+0E02:005B B402              MOV     AH,02
+0E02:005D CD21              INT     21
+0E02:005F B20A              MOV     DL,0A
+0E02:0061 CD21              INT     21
+0E02:0063 5A                POP     DX
+0E02:0064 58                POP     AX
+0E02:0065 C3                RET
+0E02:0066 B40A              MOV     AH,0A
+0E02:0068 CD21              INT     21
+0E02:006A 8BF2              MOV     SI,DX
+0E02:006C 33C9              XOR     CX,CX
+0E02:006E 8A4C01            MOV     CL,[SI+01]
+0E02:0071 83C602            ADD     SI,+02
+0E02:0074 33C0              XOR     AX,AX
+0E02:0076 BB0A00            MOV     BX,000A
+0E02:0079 F7E3              MUL     BX
+0E02:007B 33D2              XOR     DX,DX
+0E02:007D 8A14              MOV     DL,[SI]
+0E02:007F 80EA30            SUB     DL,30
+0E02:0082 03C2              ADD     AX,DX
+0E02:0084 46                INC     SI
+0E02:0085 E2F2              LOOPW   0079
+0E02:0087 C3                RET
+-q

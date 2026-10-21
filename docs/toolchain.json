@@ -1,0 +1,23 @@
+[
+  {
+    "name": "JWasm_v220_source.zip",
+    "tag": "v2.20",
+    "url": "https://api.github.com/repos/Baron-von-Riedesel/JWasm/zipball/v2.20",
+    "sha256": "77317922da2164891a8a4ee7d8aa48e6734800f3d536616b5c6dc2e9a1e3a24a",
+    "directory": "jwasm-source"
+  },
+  {
+    "name": "dosbox-x-mingw64-2026.10.01-portable.zip",
+    "tag": "dosbox-x-v2026.10.01",
+    "url": "https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v2026.10.01/dosbox-x-mingw64-2026.10.01-portable.zip",
+    "sha256": "def2d84d4415fc26c77252839b4dafb6b476e3a4204b896292e6b05505ca8c59",
+    "directory": "dosbox-x"
+  },
+  {
+    "name": "JWlinkb_v20_dos.zip",
+    "tag": "v2.0",
+    "url": "https://github.com/Baron-von-Riedesel/jwlink/releases/download/v2.0/JWlinkb_v20_dos.zip",
+    "sha256": "49ccf49aa10817bded09d37cecca33a88772d02c0984d20c9dbddd72741c89c7",
+    "directory": "jwlink-dos"
+  }
+]

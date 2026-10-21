@@ -1,0 +1,16 @@
+*.asm text eol=crlf
+*.inc text eol=crlf
+*.dbg text eol=crlf
+*.cmd text eol=crlf
+*.py text eol=lf
+*.c text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+*.json text eol=lf
+*.lst text eol=crlf -whitespace
+*.dis text eol=crlf
+*.DIS text eol=crlf
+*.map text eol=crlf
+*.out binary
+*.OUT binary
+*.exe binary

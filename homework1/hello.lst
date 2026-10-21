@@ -1,0 +1,56 @@
+JWasm v2.20, Oct  9 2026
+hello.asm
+                                ; Homework 1: assemble to OMF .OBJ, then link to DOS .EXE.
+                                .8086
+                                .model small
+                                .stack 100h
+0000                            .data
+0000 48656C6C6F20776F726C64         message db 'Hello world!', 0dh, 0ah, '$'
+0000                            .code
+0000                            start:
+0000 B8 0000s                       mov ax, DGROUP
+0003 8ED8                           mov ds, ax
+0005 BA 0000o                       mov dx, offset message
+0008 B409                           mov ah, 09h
+000A CD21                           int 21h
+000C B8004C                         mov ax, 4c00h
+000F CD21                           int 21h
+                                end start
+
+
+Macros:
+
+                N a m e                 Type
+
+@CatStr  . . . . . . . . . . . .        Func
+@Environ . . . . . . . . . . . .        Func
+@InStr . . . . . . . . . . . . .        Func
+@SizeStr . . . . . . . . . . . .        Func
+@SubStr  . . . . . . . . . . . .        Func
+
+
+Segments and Groups:
+
+                N a m e                 Size     Length   Align   Combine Class
+
+_TEXT  . . . . . . . . . . . . .        16 Bit   0011     Word    Public  'CODE'
+DGROUP . . . . . . . . . . . . .        GROUP
+_DATA  . . . . . . . . . . . . .        16 Bit   000F     Word    Public  'DATA'
+STACK  . . . . . . . . . . . . .        16 Bit   0100     Para    Stack   'STACK'
+
+
+Symbols:
+
+                N a m e                 Type       Value     Attr
+
+@CodeSize  . . . . . . . . . . .        Number             0h 
+@DataSize  . . . . . . . . . . .        Number             0h 
+@Interface . . . . . . . . . . .        Number             0h 
+@Model . . . . . . . . . . . . .        Number             2h 
+@code  . . . . . . . . . . . . .        Text   _TEXT
+@data  . . . . . . . . . . . . .        Text   DGROUP
+@stack . . . . . . . . . . . . .        Text   DGROUP
+message  . . . . . . . . . . . .        Byte[15]           0h _DATA 
+start  . . . . . . . . . . . . .        L Near             0h _TEXT 
+
+hello.asm: 16 lines, 2 passes, 0 ms, 0 warnings, 0 errors

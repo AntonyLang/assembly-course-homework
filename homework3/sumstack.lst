@@ -1,0 +1,182 @@
+JWasm v2.20, Oct  9 2026
+sum_stack.asm
+                                ; Keep the running total on the stack between loop iterations.
+                                .8086
+                                .model small
+                                .stack 100h
+0000                            .data
+0000 00                             unused db 0
+0000                            .code
+0000                            start:
+0000 B8 0000s                       mov ax, DGROUP
+0003 8ED8                           mov ds, ax
+0005 33C0                           xor ax, ax
+0007 50                             push ax                 ; Stack starts with the running total 0.
+0008 BB0100                         mov bx, 1
+000B B96400                         mov cx, 100
+000E                            sum_loop:
+000E 58                             pop ax                  ; Take out the previous total.
+000F 03C3                           add ax, bx
+0011 50                             push ax                 ; Save the new total back on the stack.
+0012 43                             inc bx
+0013 E2F9                           loop sum_loop
+0015 58                             pop ax                  ; Balance the stack before calling output routines.
+0016 E80800                         call print_decimal
+0019 E83F00                         call print_newline
+001C B8004C                         mov ax, 4c00h
+001F CD21                           int 21h
+                                include dosio.inc
+                              C ; 8086 DOS helpers. Call after initializing DS to @data.
+                              C ; Input routines expect valid input in the range documented by each program.
+                              C 
+                              C ; Print the unsigned word in AX as decimal. Preserve general registers.
+0021                          C print_decimal proc near
+0021 53                       C     push bx
+0022 BB0A00                   C     mov bx, 10
+0025 E80B00                   C     call print_unsigned
+0028 5B                       C     pop bx
+0029 C3                       C     ret
+002A                          C print_decimal endp
+                              C 
+                              C ; Print the unsigned word in AX in uppercase hexadecimal, no prefix.
+002A                          C print_hex proc near
+002A 53                       C     push bx
+002B BB1000                   C     mov bx, 16
+002E E80200                   C     call print_unsigned
+0031 5B                       C     pop bx
+0032 C3                       C     ret
+0033                          C print_hex endp
+                              C 
+                              C ; AX=value, BX=base (10 or 16). Remainders are reversed on the stack.
+0033                          C print_unsigned proc near
+0033 50                       C     push ax
+0034 51                       C     push cx
+0035 52                       C     push dx
+0036 33C9                     C     xor cx, cx
+0038                          C divide_digit:
+0038 33D2                     C     xor dx, dx             ; DIV uses DX:AX, not AX alone.
+003A F7F3                     C     div bx                 ; AX=quotient, DX=remainder.
+003C 52                       C     push dx
+003D 41                       C     inc cx
+003E 83F800                   C     cmp ax, 0
+0041 75F5                     C     jne divide_digit       ; Execute at least once, so zero prints as "0".
+0043                          C output_digit:
+0043 5A                       C     pop dx
+0044 80FA09                   C     cmp dl, 9
+0047 7605                     C     jbe numeric_digit
+0049 80C237                   C     add dl, 'A'-10         ; Values 10..15 map to A..F.
+004C EB03                     C     jmp short emit_digit
+004E                          C numeric_digit:
+004E 80C230                   C     add dl, '0'
+0051                          C emit_digit:
+0051 B402                     C     mov ah, 02h
+0053 CD21                     C     int 21h
+0055 E2EC                     C     loop output_digit
+0057 5A                       C     pop dx
+0058 59                       C     pop cx
+0059 58                       C     pop ax
+005A C3                       C     ret
+005B                          C print_unsigned endp
+                              C 
+005B                          C print_newline proc near
+005B 50                       C     push ax
+005C 52                       C     push dx
+005D B20D                     C     mov dl, 0dh
+005F B402                     C     mov ah, 02h
+0061 CD21                     C     int 21h
+0063 B20A                     C     mov dl, 0ah
+0065 CD21                     C     int 21h
+0067 5A                       C     pop dx
+0068 58                       C     pop ax
+0069 C3                       C     ret
+006A                          C print_newline endp
+                              C 
+                              C ; DS:DX points to a DOS AH=0Ah line buffer.
+                              C ; Return its unsigned decimal value (0..65535) in AX.
+006A                          C read_decimal proc near
+006A B40A                     C     mov ah, 0ah
+006C CD21                     C     int 21h
+006E 8BF2                     C     mov si, dx
+0070 33C9                     C     xor cx, cx
+0072 8A4C01                   C     mov cl, [si+1]         ; Number of input characters, excluding CR.
+0075 83C602                   C     add si, 2
+0078 33C0                     C     xor ax, ax
+007A BB0A00                   C     mov bx, 10
+007D                          C read_digit:
+007D F7E3                     C     mul bx                 ; value = old value * 10 + next digit.
+007F 33D2                     C     xor dx, dx
+0081 8A14                     C     mov dl, [si]
+0083 80EA30                   C     sub dl, '0'
+0086 03C2                     C     add ax, dx
+0088 46                       C     inc si
+0089 E2F2                     C     loop read_digit
+008B C3                       C     ret
+008C                          C read_decimal endp
+                                end start
+
+
+Binary Map:
+
+Segment                  Pos(file)     RVA  Size(fil) Size(mem)
+---------------------------------------------------------------
+<header>                        0        0        30         0
+_TEXT                          30        0        8C        8C
+_DATA                          BC        C         1         1
+STACK                           0       10         0       100
+---------------------------------------------------------------
+                                                  BD       190
+
+
+Macros:
+
+                N a m e                 Type
+
+@CatStr  . . . . . . . . . . . .        Func
+@Environ . . . . . . . . . . . .        Func
+@InStr . . . . . . . . . . . . .        Func
+@SizeStr . . . . . . . . . . . .        Func
+@SubStr  . . . . . . . . . . . .        Func
+
+
+Segments and Groups:
+
+                N a m e                 Size     Length   Align   Combine Class
+
+_TEXT  . . . . . . . . . . . . .        16 Bit   008C     Word    Public  'CODE'
+DGROUP . . . . . . . . . . . . .        GROUP
+_DATA  . . . . . . . . . . . . .        16 Bit   0001     Word    Public  'DATA'
+STACK  . . . . . . . . . . . . .        16 Bit   0100     Para    Stack   'STACK'
+
+
+Procedures, parameters and locals:
+
+                N a m e                 Type     Value    Segment  Length
+
+print_decimal  . . . . . . . . .        P Near   0021     _TEXT    0009 Public   
+print_hex  . . . . . . . . . . .        P Near   002A     _TEXT    0009 Public   
+print_newline  . . . . . . . . .        P Near   005B     _TEXT    000F Public   
+print_unsigned . . . . . . . . .        P Near   0033     _TEXT    0028 Public   
+  divide_digit . . . . . . . . .        L Near   0038     _TEXT
+  output_digit . . . . . . . . .        L Near   0043     _TEXT
+  emit_digit . . . . . . . . . .        L Near   0051     _TEXT
+  numeric_digit  . . . . . . . .        L Near   004E     _TEXT
+read_decimal . . . . . . . . . .        P Near   006A     _TEXT    0022 Public   
+  read_digit . . . . . . . . . .        L Near   007D     _TEXT
+
+
+Symbols:
+
+                N a m e                 Type       Value     Attr
+
+@CodeSize  . . . . . . . . . . .        Number             0h 
+@DataSize  . . . . . . . . . . .        Number             0h 
+@Interface . . . . . . . . . . .        Number             0h 
+@Model . . . . . . . . . . . . .        Number             2h 
+@code  . . . . . . . . . . . . .        Text   _TEXT
+@data  . . . . . . . . . . . . .        Text   DGROUP
+@stack . . . . . . . . . . . . .        Text   DGROUP
+start  . . . . . . . . . . . . .        L Near             0h _TEXT Public 
+sum_loop . . . . . . . . . . . .        L Near             Eh _TEXT 
+unused . . . . . . . . . . . . .        Byte               0h _DATA 
+
+sum_stack.asm: 27 lines, 2 passes, 1 ms, 0 warnings, 0 errors

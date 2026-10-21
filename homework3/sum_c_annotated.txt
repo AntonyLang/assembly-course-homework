@@ -1,0 +1,48 @@
+作业 3：C 语言输入 n，累加 1..n；实际 main 反汇编逐条注释
+编译器：GCC 15.2.0，-O0；目标：Windows x86-64（不是 16 位 DOS）
+生成命令：objdump -d -M intel --disassemble=main sum_c.exe
+原始输出：sum_c_disassembly.txt；本文件仅作阅读材料。
+
+局部变量：DWORD [rbp-0x4] 为 i，DWORD [rbp-0x8] 为 total，DWORD [rbp-0xc] 为 n。
+Windows x64：第一个参数经 RCX 传递，第二个经 RDX 传递。
+
+0000000140001490 <main>:
+140001490: 55                    push rbp                         ; 保存调用者的帧指针
+140001491: 48 89 e5              mov rbp,rsp                      ; 建立当前函数栈帧
+140001494: 48 83 ec 30           sub rsp,0x30                     ; 为局部变量、32 字节影子空间和对齐预留栈空间
+140001498: e8 33 01 00 00        call 1400015d0 <__main>           ; MinGW 运行库初始化辅助函数
+14000149d: c7 45 f8 00 00 00 00  mov DWORD PTR [rbp-0x8],0x0      ; total = 0
+1400014a4: 48 8d 05 55 2b 00 00  lea rax,[rip+0x2b55]             ; 取得输入提示字符串的地址 140004000
+1400014ab: 48 89 c1              mov rcx,rax                      ; printf 的第一个参数：提示字符串
+1400014ae: e8 7d 13 00 00        call 140002830 <printf>          ; 打印 Input n (1..100):
+1400014b3: 48 8d 45 f4           lea rax,[rbp-0xc]                ; 取得变量 n 的地址 &n，不是读取 n 的数值
+1400014b7: 48 8d 0d 55 2b 00 00  lea rcx,[rip+0x2b55]             ; scanf 的第一个参数：格式串 "%d" 的地址 140004013
+1400014be: 48 89 c2              mov rdx,rax                      ; scanf 的第二个参数：&n
+1400014c1: e8 1a 13 00 00        call 1400027e0 <scanf>           ; 读入十进制整数，存入 n
+1400014c6: c7 45 fc 01 00 00 00  mov DWORD PTR [rbp-0x4],0x1      ; for 初始化 i = 1
+1400014cd: eb 0a                 jmp 1400014d9 <main+0x49>        ; 先检查循环条件
+1400014cf: 8b 45 fc              mov eax,DWORD PTR [rbp-0x4]      ; 读取当前 i
+1400014d2: 01 45 f8              add DWORD PTR [rbp-0x8],eax      ; total += i，结果保存在局部变量 total 中
+1400014d5: 83 45 fc 01           add DWORD PTR [rbp-0x4],0x1      ; ++i
+1400014d9: 8b 45 f4              mov eax,DWORD PTR [rbp-0xc]      ; 读取上限 n
+1400014dc: 39 45 fc              cmp DWORD PTR [rbp-0x4],eax      ; 比较 i 与 n，设置标志寄存器
+1400014df: 7e ee                 jle 1400014cf <main+0x3f>        ; i <= n 则回到循环体，包含第 n 项
+1400014e1: 8b 45 f8              mov eax,DWORD PTR [rbp-0x8]      ; 读取最终 total
+1400014e4: 48 8d 0d 2b 2b 00 00  lea rcx,[rip+0x2b2b]             ; printf 第一个参数："Sum: %u\n"，地址 140004016
+1400014eb: 89 c2                 mov edx,eax                      ; printf 第二个参数：unsigned int total
+1400014ed: e8 3e 13 00 00        call 140002830 <printf>          ; 将 total 转换为十进制文本并打印
+1400014f2: b8 00 00 00 00        mov eax,0x0                      ; main 返回 0，表示正常结束
+1400014f7: 48 83 c4 30           add rsp,0x30                     ; 释放栈帧空间
+1400014fb: 5d                    pop rbp                          ; 恢复调用者帧指针
+1400014fc: c3                    ret                              ; 返回 C 运行库
+1400014fd: 90                    nop                              ; 对齐填充
+1400014fe: 90                    nop                              ; 对齐填充
+1400014ff: 90                    nop                              ; 对齐填充
+
+源码对应关系：
+1. i=1 → 1490 后的初始化块，实际设置 i 的指令位于 14C6。
+2. i<=n → 14D9 / 14DC / 14DF，CMP 与 JLE 控制重复。
+3. total+=i → 14CF / 14D2；++i → 14D5。
+4. n=100 时循环执行 100 次，得到 5050；n=1 时只累加一次，得到 1。
+5. 编译器没有生成 LOOP；汇编语言可用不同指令组合实现同一循环语义。
+6. 修改源码或编译器后，地址、机器码及栈布局可能变化，应重新生成和核对反汇编。

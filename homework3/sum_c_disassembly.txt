@@ -1,0 +1,38 @@
+
+sum_c.exe:     file format pei-x86-64
+
+
+Disassembly of section .text:
+
+0000000140001490 <main>:
+   140001490:	55                   	push   rbp
+   140001491:	48 89 e5             	mov    rbp,rsp
+   140001494:	48 83 ec 30          	sub    rsp,0x30
+   140001498:	e8 33 01 00 00       	call   1400015d0 <__main>
+   14000149d:	c7 45 f8 00 00 00 00 	mov    DWORD PTR [rbp-0x8],0x0
+   1400014a4:	48 8d 05 55 2b 00 00 	lea    rax,[rip+0x2b55]        # 140004000 <.rdata>
+   1400014ab:	48 89 c1             	mov    rcx,rax
+   1400014ae:	e8 7d 13 00 00       	call   140002830 <printf>
+   1400014b3:	48 8d 45 f4          	lea    rax,[rbp-0xc]
+   1400014b7:	48 8d 0d 55 2b 00 00 	lea    rcx,[rip+0x2b55]        # 140004013 <.rdata+0x13>
+   1400014be:	48 89 c2             	mov    rdx,rax
+   1400014c1:	e8 1a 13 00 00       	call   1400027e0 <scanf>
+   1400014c6:	c7 45 fc 01 00 00 00 	mov    DWORD PTR [rbp-0x4],0x1
+   1400014cd:	eb 0a                	jmp    1400014d9 <main+0x49>
+   1400014cf:	8b 45 fc             	mov    eax,DWORD PTR [rbp-0x4]
+   1400014d2:	01 45 f8             	add    DWORD PTR [rbp-0x8],eax
+   1400014d5:	83 45 fc 01          	add    DWORD PTR [rbp-0x4],0x1
+   1400014d9:	8b 45 f4             	mov    eax,DWORD PTR [rbp-0xc]
+   1400014dc:	39 45 fc             	cmp    DWORD PTR [rbp-0x4],eax
+   1400014df:	7e ee                	jle    1400014cf <main+0x3f>
+   1400014e1:	8b 45 f8             	mov    eax,DWORD PTR [rbp-0x8]
+   1400014e4:	48 8d 0d 2b 2b 00 00 	lea    rcx,[rip+0x2b2b]        # 140004016 <.rdata+0x16>
+   1400014eb:	89 c2                	mov    edx,eax
+   1400014ed:	e8 3e 13 00 00       	call   140002830 <printf>
+   1400014f2:	b8 00 00 00 00       	mov    eax,0x0
+   1400014f7:	48 83 c4 30          	add    rsp,0x30
+   1400014fb:	5d                   	pop    rbp
+   1400014fc:	c3                   	ret
+   1400014fd:	90                   	nop
+   1400014fe:	90                   	nop
+   1400014ff:	90                   	nop

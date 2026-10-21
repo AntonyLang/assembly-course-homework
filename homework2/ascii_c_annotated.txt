@@ -1,0 +1,50 @@
+作业题目 2 第 3 小题：实际 C 程序反汇编及注释
+来源：objdump -d -M intel --disassemble=main ascii_c.exe
+编译器：MSYS2 GCC 15.2.0；目标：x86_64-w64-mingw32；优化：-O0
+本文件为反汇编阅读材料，包含地址、机器码、中文注释，不能直接作为 .asm 汇编。
+
+栈中变量：
+  DWORD PTR [rbp-0x4] = letter，当前字母的 ASCII 码
+  DWORD PTR [rbp-0x8] = row，行下标 0..1
+  DWORD PTR [rbp-0xc] = column，列下标 0..12
+
+0000000140001490 <main>:
+140001490: 55                    push rbp                         ; 保存调用者的帧指针
+140001491: 48 89 e5              mov rbp,rsp                      ; 建立当前函数的栈帧
+140001494: 48 83 ec 30           sub rsp,0x30                     ; 分配 48 字节：含 32 字节参数影子空间、局部变量和对齐空间
+140001498: e8 33 01 00 00        call 1400015d0 <__main>           ; MinGW 运行库初始化辅助函数，不是再次调用 main
+14000149d: c7 45 fc 61 00 00 00  mov DWORD PTR [rbp-0x4],0x61     ; letter = 'a'，0x61 = 十进制 97
+1400014a4: c7 45 f8 00 00 00 00  mov DWORD PTR [rbp-0x8],0x0      ; row = 0
+1400014ab: eb 3f                 jmp 1400014ec <main+0x5c>        ; 先判断外层 for 的条件
+1400014ad: c7 45 f4 00 00 00 00  mov DWORD PTR [rbp-0xc],0x0      ; 每行开始时 column = 0
+1400014b4: eb 22                 jmp 1400014d8 <main+0x48>        ; 先判断内层 for 的条件
+1400014b6: 8b 45 fc              mov eax,DWORD PTR [rbp-0x4]      ; 读取当前 letter
+1400014b9: 89 c1                 mov ecx,eax                      ; Windows x64 的第一个 int 参数通过 ECX 传递
+1400014bb: e8 58 14 00 00        call 140002918 <putchar>         ; putchar(letter)，打印当前字母
+1400014c0: 83 45 fc 01           add DWORD PTR [rbp-0x4],0x1      ; ++letter，下一次打印下一个字母
+1400014c4: 83 7d f4 0b           cmp DWORD PTR [rbp-0xc],0xb      ; 比较 column 与 11；column < 12 等价于 column <= 11
+1400014c8: 7f 0a                 jg 1400014d4 <main+0x44>         ; column > 11 时跳过空格，最后一列不留尾空格
+1400014ca: b9 20 00 00 00        mov ecx,0x20                     ; 参数 = ASCII 空格 0x20
+1400014cf: e8 44 14 00 00        call 140002918 <putchar>         ; putchar(' ')
+1400014d4: 83 45 f4 01           add DWORD PTR [rbp-0xc],0x1      ; ++column
+1400014d8: 83 7d f4 0c           cmp DWORD PTR [rbp-0xc],0xc      ; 比较 column 与 12
+1400014dc: 7e d8                 jle 1400014b6 <main+0x26>        ; column <= 12 时继续，即 column < 13
+1400014de: b9 0a 00 00 00        mov ecx,0xa                      ; 参数 = 换行符 '\n'，ASCII 0x0A
+1400014e3: e8 30 14 00 00        call 140002918 <putchar>         ; putchar('\n')；Windows 文本模式输出 CR+LF
+1400014e8: 83 45 f8 01           add DWORD PTR [rbp-0x8],0x1      ; ++row
+1400014ec: 83 7d f8 01           cmp DWORD PTR [rbp-0x8],0x1      ; 比较 row 与 1
+1400014f0: 7e bb                 jle 1400014ad <main+0x1d>        ; row <= 1 时继续，即 row < 2
+1400014f2: b8 00 00 00 00        mov eax,0x0                      ; main 的返回值为 0
+1400014f7: 48 83 c4 30           add rsp,0x30                     ; 释放栈帧中分配的 48 字节
+1400014fb: 5d                    pop rbp                          ; 恢复调用者的帧指针
+1400014fc: c3                    ret                              ; 返回 C 运行库的调用者
+1400014fd: 90                    nop                              ; 代码对齐填充
+1400014fe: 90                    nop                              ; 代码对齐填充
+1400014ff: 90                    nop                              ; 代码对齐填充
+
+观察：
+1. 两个 for 循环被翻译为初始化、CMP、条件跳转和自增指令。
+2. 这里没有生成 LOOP 指令；编译器使用 JLE/JG 等条件跳转。
+3. ECX 在这里用于传递函数参数，不能当成课程程序中的 CX 循环计数器。
+4. 当前地址对应上述编译器、编译选项与源码；修改源码或工具版本后应重新查看反汇编。
+5. 前两题是 16 位 DOS 程序，采用 INT 21h；本题是 64 位 Windows C 程序，采用 C 运行库的 putchar。
