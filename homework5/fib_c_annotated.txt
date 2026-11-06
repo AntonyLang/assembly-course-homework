@@ -1,0 +1,260 @@
+GCC 15.2.0，Windows x64，-O0；以下为 EXE 中的实际反汇编。
+
+
+
+
+
+0000000140001490 <fib>:
+; fib(n,value)：ECX=n，RDX=输出指针。分配 40h 字节栈帧，含调用影子空间。
+   140001490:	55                   	push   rbp
+   140001491:	48 89 e5             	mov    rbp,rsp
+   140001494:	48 83 ec 40          	sub    rsp,0x40
+   140001498:	89 4d 10             	mov    DWORD PTR [rbp+0x10],ecx
+   14000149b:	48 89 55 18          	mov    QWORD PTR [rbp+0x18],rdx
+; [rbp-4] 是 carry，初值 0。
+   14000149f:	c7 45 fc 00 00 00 00 	mov    DWORD PTR [rbp-0x4],0x0
+; 读取 ready[n]，非零表示可以直接取缓存。
+   1400014a6:	8b 45 10             	mov    eax,DWORD PTR [rbp+0x10]
+   1400014a9:	48 8d 15 90 5f 00 00 	lea    rdx,[rip+0x5f90]        # 140007440 <ready>
+   1400014b0:	0f b6 04 10          	movzx  eax,BYTE PTR [rax+rdx*1]
+   1400014b4:	84 c0                	test   al,al
+   1400014b6:	74 33                	je     1400014eb <fib+0x5b>
+; 缓存命中：计算 n*10，把 cache[n] 的 8+2 字节复制给 *value，跳到函数返回。
+   1400014b8:	48 8b 55 18          	mov    rdx,QWORD PTR [rbp+0x18]
+   1400014bc:	8b 4d 10             	mov    ecx,DWORD PTR [rbp+0x10]
+   1400014bf:	48 89 c8             	mov    rax,rcx
+   1400014c2:	48 c1 e0 02          	shl    rax,0x2
+   1400014c6:	48 01 c8             	add    rax,rcx
+   1400014c9:	48 01 c0             	add    rax,rax
+   1400014cc:	48 89 c1             	mov    rcx,rax
+   1400014cf:	48 8d 05 6a 5b 00 00 	lea    rax,[rip+0x5b6a]        # 140007040 <cache>
+   1400014d6:	4c 8b 04 01          	mov    r8,QWORD PTR [rcx+rax*1]
+   1400014da:	4c 89 02             	mov    QWORD PTR [rdx],r8
+   1400014dd:	0f b7 44 01 08       	movzx  eax,WORD PTR [rcx+rax*1+0x8]
+   1400014e2:	66 89 42 08          	mov    WORD PTR [rdx+0x8],ax
+   1400014e6:	e9 e6 00 00 00       	jmp    1400015d1 <fib+0x141>
+; n<=1 是递归基例，cache[n].word[0]=n，其余字由静态初始化置零。
+   1400014eb:	83 7d 10 01          	cmp    DWORD PTR [rbp+0x10],0x1
+   1400014ef:	77 25                	ja     140001516 <fib+0x86>
+   1400014f1:	8b 45 10             	mov    eax,DWORD PTR [rbp+0x10]
+   1400014f4:	89 c1                	mov    ecx,eax
+   1400014f6:	8b 55 10             	mov    edx,DWORD PTR [rbp+0x10]
+   1400014f9:	48 89 d0             	mov    rax,rdx
+   1400014fc:	48 c1 e0 02          	shl    rax,0x2
+   140001500:	48 01 d0             	add    rax,rdx
+   140001503:	48 01 c0             	add    rax,rax
+   140001506:	48 89 c2             	mov    rdx,rax
+   140001509:	48 8d 05 30 5b 00 00 	lea    rax,[rip+0x5b30]        # 140007040 <cache>
+   140001510:	66 89 0c 02          	mov    WORD PTR [rdx+rax*1],cx
+   140001514:	eb 7f                	jmp    140001595 <fib+0x105>
+; 准备 n-1 和局部变量 a 的地址，递归调用 fib(n-1,&a)。
+   140001516:	8b 45 10             	mov    eax,DWORD PTR [rbp+0x10]
+   140001519:	8d 48 ff             	lea    ecx,[rax-0x1]
+   14000151c:	48 8d 45 ee          	lea    rax,[rbp-0x12]
+   140001520:	48 89 c2             	mov    rdx,rax
+   140001523:	e8 68 ff ff ff       	call   140001490 <fib>
+; 准备 n-2 和局部变量 b 的地址，递归调用 fib(n-2,&b)。
+   140001528:	8b 45 10             	mov    eax,DWORD PTR [rbp+0x10]
+   14000152b:	8d 48 fe             	lea    ecx,[rax-0x2]
+   14000152e:	48 8d 45 e4          	lea    rax,[rbp-0x1c]
+   140001532:	48 89 c2             	mov    rdx,rax
+   140001535:	e8 56 ff ff ff       	call   140001490 <fib>
+; i=0，开始逐字相加。a 位于 [rbp-12h]，b 位于 [rbp-1Ch]。
+   14000153a:	c7 45 f8 00 00 00 00 	mov    DWORD PTR [rbp-0x8],0x0
+   140001541:	eb 4c                	jmp    14000158f <fib+0xff>
+; 读取 a.word[i] 和 b.word[i]，零扩展为 32 位后相加。
+   140001543:	8b 45 f8             	mov    eax,DWORD PTR [rbp-0x8]
+   140001546:	0f b7 44 45 ee       	movzx  eax,WORD PTR [rbp+rax*2-0x12]
+   14000154b:	0f b7 d0             	movzx  edx,ax
+   14000154e:	8b 45 f8             	mov    eax,DWORD PTR [rbp-0x8]
+   140001551:	0f b7 44 45 e4       	movzx  eax,WORD PTR [rbp+rax*2-0x1c]
+   140001556:	0f b7 c0             	movzx  eax,ax
+   140001559:	01 d0                	add    eax,edx
+; 加上前一字的进位，carry 保留 32 位临时和。
+   14000155b:	01 45 fc             	add    DWORD PTR [rbp-0x4],eax
+; 计算 cache[n].word[i] 地址，写入临时和的低 16 位。
+   14000155e:	8b 45 fc             	mov    eax,DWORD PTR [rbp-0x4]
+   140001561:	41 89 c0             	mov    r8d,eax
+   140001564:	8b 4d f8             	mov    ecx,DWORD PTR [rbp-0x8]
+   140001567:	8b 55 10             	mov    edx,DWORD PTR [rbp+0x10]
+   14000156a:	48 89 d0             	mov    rax,rdx
+   14000156d:	48 c1 e0 02          	shl    rax,0x2
+   140001571:	48 01 d0             	add    rax,rdx
+   140001574:	48 01 c8             	add    rax,rcx
+   140001577:	48 8d 14 00          	lea    rdx,[rax+rax*1]
+   14000157b:	48 8d 05 be 5a 00 00 	lea    rax,[rip+0x5abe]        # 140007040 <cache>
+   140001582:	66 44 89 04 02       	mov    WORD PTR [rdx+rax*1],r8w
+; carry >>=16，留下本字产生的进位；i++，共处理五个字。
+   140001587:	c1 6d fc 10          	shr    DWORD PTR [rbp-0x4],0x10
+   14000158b:	83 45 f8 01          	add    DWORD PTR [rbp-0x8],0x1
+   14000158f:	83 7d f8 04          	cmp    DWORD PTR [rbp-0x8],0x4
+   140001593:	76 ae                	jbe    140001543 <fib+0xb3>
+; ready[n]=1，随后将 cache[n] 复制到输出指针。
+   140001595:	8b 45 10             	mov    eax,DWORD PTR [rbp+0x10]
+   140001598:	48 8d 15 a1 5e 00 00 	lea    rdx,[rip+0x5ea1]        # 140007440 <ready>
+   14000159f:	c6 04 10 01          	mov    BYTE PTR [rax+rdx*1],0x1
+   1400015a3:	48 8b 55 18          	mov    rdx,QWORD PTR [rbp+0x18]
+   1400015a7:	8b 4d 10             	mov    ecx,DWORD PTR [rbp+0x10]
+   1400015aa:	48 89 c8             	mov    rax,rcx
+   1400015ad:	48 c1 e0 02          	shl    rax,0x2
+   1400015b1:	48 01 c8             	add    rax,rcx
+   1400015b4:	48 01 c0             	add    rax,rax
+   1400015b7:	48 89 c1             	mov    rcx,rax
+   1400015ba:	48 8d 05 7f 5a 00 00 	lea    rax,[rip+0x5a7f]        # 140007040 <cache>
+   1400015c1:	4c 8b 04 01          	mov    r8,QWORD PTR [rcx+rax*1]
+   1400015c5:	4c 89 02             	mov    QWORD PTR [rdx],r8
+   1400015c8:	0f b7 44 01 08       	movzx  eax,WORD PTR [rcx+rax*1+0x8]
+   1400015cd:	66 89 42 08          	mov    WORD PTR [rdx+0x8],ax
+; 释放当前栈帧并返回调用者。
+   1400015d1:	48 83 c4 40          	add    rsp,0x40
+   1400015d5:	5d                   	pop    rbp
+   1400015d6:	c3                   	ret
+
+
+
+
+
+00000001400015d7 <print_big>:
+; print_big：10 字节结构体通过地址传入；RBX 保存该地址。
+   1400015d7:	55                   	push   rbp
+   1400015d8:	53                   	push   rbx
+   1400015d9:	48 83 ec 58          	sub    rsp,0x58
+   1400015dd:	48 8d 6c 24 50       	lea    rbp,[rsp+0x50]
+   1400015e2:	48 89 cb             	mov    rbx,rcx
+; count=0；每轮十进制转换重置 remainder、nonzero，i=4 从最高字开始。
+   1400015e5:	c7 45 fc 00 00 00 00 	mov    DWORD PTR [rbp-0x4],0x0
+   1400015ec:	c7 45 f8 00 00 00 00 	mov    DWORD PTR [rbp-0x8],0x0
+   1400015f3:	c7 45 f4 00 00 00 00 	mov    DWORD PTR [rbp-0xc],0x0
+   1400015fa:	c7 45 f0 04 00 00 00 	mov    DWORD PTR [rbp-0x10],0x4
+   140001601:	eb 73                	jmp    140001676 <print_big+0x9f>
+; part=(remainder<<16)|word[i]，构造当前待除数。
+   140001603:	8b 45 f8             	mov    eax,DWORD PTR [rbp-0x8]
+   140001606:	c1 e0 10             	shl    eax,0x10
+   140001609:	89 c2                	mov    edx,eax
+   14000160b:	8b 45 f0             	mov    eax,DWORD PTR [rbp-0x10]
+   14000160e:	48 98                	cdqe
+   140001610:	0f b7 04 43          	movzx  eax,WORD PTR [rbx+rax*2]
+   140001614:	0f b7 c0             	movzx  eax,ax
+   140001617:	09 d0                	or     eax,edx
+   140001619:	89 45 ec             	mov    DWORD PTR [rbp-0x14],eax
+; 用乘常数 0xCCCCCCCD 和右移实现无符号除 10，即使 -O0 也可能这样编译。
+   14000161c:	8b 45 ec             	mov    eax,DWORD PTR [rbp-0x14]
+   14000161f:	89 c2                	mov    edx,eax
+   140001621:	b8 cd cc cc cc       	mov    eax,0xcccccccd
+   140001626:	48 0f af c2          	imul   rax,rdx
+   14000162a:	48 c1 e8 20          	shr    rax,0x20
+   14000162e:	c1 e8 03             	shr    eax,0x3
+; 将商的低 16 位写回 word[i]。
+   140001631:	89 c2                	mov    edx,eax
+   140001633:	8b 45 f0             	mov    eax,DWORD PTR [rbp-0x10]
+   140001636:	48 98                	cdqe
+   140001638:	66 89 14 43          	mov    WORD PTR [rbx+rax*2],dx
+; 再次求商，计算 remainder=part-quotient*10。
+   14000163c:	8b 4d ec             	mov    ecx,DWORD PTR [rbp-0x14]
+   14000163f:	89 ca                	mov    edx,ecx
+   140001641:	b8 cd cc cc cc       	mov    eax,0xcccccccd
+   140001646:	48 0f af c2          	imul   rax,rdx
+   14000164a:	48 c1 e8 20          	shr    rax,0x20
+   14000164e:	89 c2                	mov    edx,eax
+   140001650:	c1 ea 03             	shr    edx,0x3
+   140001653:	89 d0                	mov    eax,edx
+   140001655:	c1 e0 02             	shl    eax,0x2
+   140001658:	01 d0                	add    eax,edx
+   14000165a:	01 c0                	add    eax,eax
+   14000165c:	29 c1                	sub    ecx,eax
+   14000165e:	89 ca                	mov    edx,ecx
+   140001660:	89 55 f8             	mov    DWORD PTR [rbp-0x8],edx
+; 累计商是否非零，i--，逐字向低位移动。
+   140001663:	8b 45 f0             	mov    eax,DWORD PTR [rbp-0x10]
+   140001666:	48 98                	cdqe
+   140001668:	0f b7 04 43          	movzx  eax,WORD PTR [rbx+rax*2]
+   14000166c:	0f b7 c0             	movzx  eax,ax
+   14000166f:	09 45 f4             	or     DWORD PTR [rbp-0xc],eax
+   140001672:	83 6d f0 01          	sub    DWORD PTR [rbp-0x10],0x1
+   140001676:	83 7d f0 00          	cmp    DWORD PTR [rbp-0x10],0x0
+   14000167a:	79 87                	jns    140001603 <print_big+0x2c>
+; 余数加 ASCII 0，保存到 digits[count++]。
+   14000167c:	8b 45 f8             	mov    eax,DWORD PTR [rbp-0x8]
+   14000167f:	8d 48 30             	lea    ecx,[rax+0x30]
+   140001682:	8b 45 fc             	mov    eax,DWORD PTR [rbp-0x4]
+   140001685:	8d 50 01             	lea    edx,[rax+0x1]
+   140001688:	89 55 fc             	mov    DWORD PTR [rbp-0x4],edx
+   14000168b:	89 ca                	mov    edx,ecx
+   14000168d:	89 c0                	mov    eax,eax
+   14000168f:	88 54 05 d0          	mov    BYTE PTR [rbp+rax*1-0x30],dl
+; 商未清零时继续转换，否则反向读取 digits 并逐字符输出。
+   140001693:	83 7d f4 00          	cmp    DWORD PTR [rbp-0xc],0x0
+   140001697:	0f 85 4f ff ff ff    	jne    1400015ec <print_big+0x15>
+   14000169d:	eb 16                	jmp    1400016b5 <print_big+0xde>
+   14000169f:	83 6d fc 01          	sub    DWORD PTR [rbp-0x4],0x1
+   1400016a3:	8b 45 fc             	mov    eax,DWORD PTR [rbp-0x4]
+   1400016a6:	0f b6 44 05 d0       	movzx  eax,BYTE PTR [rbp+rax*1-0x30]
+   1400016ab:	0f be c0             	movsx  eax,al
+   1400016ae:	89 c1                	mov    ecx,eax
+   1400016b0:	e8 8b 15 00 00       	call   140002c40 <putchar>
+   1400016b5:	83 7d fc 00          	cmp    DWORD PTR [rbp-0x4],0x0
+   1400016b9:	75 e4                	jne    14000169f <print_big+0xc8>
+; 恢复栈空间与保存的寄存器，返回。
+   1400016bb:	90                   	nop
+   1400016bc:	90                   	nop
+   1400016bd:	48 83 c4 58          	add    rsp,0x58
+   1400016c1:	5b                   	pop    rbx
+   1400016c2:	5d                   	pop    rbp
+   1400016c3:	c3                   	ret
+
+
+
+
+
+00000001400016c4 <main>:
+; main：n 在 [rbp-4]，value 在 [rbp-0Eh]。
+   1400016c4:	55                   	push   rbp
+   1400016c5:	48 89 e5             	mov    rbp,rsp
+   1400016c8:	48 83 ec 40          	sub    rsp,0x40
+   1400016cc:	e8 4f 01 00 00       	call   140001820 <__main>
+; printf 输出提示，scanf("%u",&n) 读取输入。
+   1400016d1:	48 8d 05 28 29 00 00 	lea    rax,[rip+0x2928]        # 140004000 <.rdata>
+   1400016d8:	48 89 c1             	mov    rcx,rax
+   1400016db:	e8 b0 13 00 00       	call   140002a90 <printf>
+   1400016e0:	48 8d 45 fc          	lea    rax,[rbp-0x4]
+   1400016e4:	48 8d 0d 28 29 00 00 	lea    rcx,[rip+0x2928]        # 140004013 <.rdata+0x13>
+   1400016eb:	48 89 c2             	mov    rdx,rax
+   1400016ee:	e8 4d 13 00 00       	call   140002a40 <scanf>
+; ECX=n，RDX=&value，调用 fib。
+   1400016f3:	8b 45 fc             	mov    eax,DWORD PTR [rbp-0x4]
+   1400016f6:	48 8d 55 f2          	lea    rdx,[rbp-0xe]
+   1400016fa:	89 c1                	mov    ecx,eax
+   1400016fc:	e8 8f fd ff ff       	call   140001490 <fib>
+; 输出 F(n):，把 value 的五个字复制为 print_big 的值参数。
+   140001701:	48 8d 05 0e 29 00 00 	lea    rax,[rip+0x290e]        # 140004016 <.rdata+0x16>
+   140001708:	48 89 c1             	mov    rcx,rax
+   14000170b:	e8 80 13 00 00       	call   140002a90 <printf>
+   140001710:	48 8b 45 f2          	mov    rax,QWORD PTR [rbp-0xe]
+   140001714:	48 89 45 e0          	mov    QWORD PTR [rbp-0x20],rax
+   140001718:	0f b7 45 fa          	movzx  eax,WORD PTR [rbp-0x6]
+   14000171c:	66 89 45 e8          	mov    WORD PTR [rbp-0x18],ax
+; 传入该副本地址，调用 print_big，然后输出换行并返回 0。
+   140001720:	48 8d 45 e0          	lea    rax,[rbp-0x20]
+   140001724:	48 89 c1             	mov    rcx,rax
+   140001727:	e8 ab fe ff ff       	call   1400015d7 <print_big>
+   14000172c:	b9 0a 00 00 00       	mov    ecx,0xa
+   140001731:	e8 0a 15 00 00       	call   140002c40 <putchar>
+   140001736:	b8 00 00 00 00       	mov    eax,0x0
+   14000173b:	48 83 c4 40          	add    rsp,0x40
+   14000173f:	5d                   	pop    rbp
+   140001740:	c3                   	ret
+   140001741:	90                   	nop
+   140001742:	90                   	nop
+   140001743:	90                   	nop
+   140001744:	90                   	nop
+   140001745:	90                   	nop
+   140001746:	90                   	nop
+   140001747:	90                   	nop
+   140001748:	90                   	nop
+   140001749:	90                   	nop
+   14000174a:	90                   	nop
+   14000174b:	90                   	nop
+   14000174c:	90                   	nop
+   14000174d:	90                   	nop
+   14000174e:	90                   	nop
+   14000174f:	90                   	nop

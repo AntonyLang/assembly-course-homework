@@ -1,0 +1,89 @@
+GCC 15.2.0，Windows x64，-O0；以下为 EXE 中的实际反汇编。
+
+
+
+
+
+0000000140001536 <main>:
+; main：建立栈帧；Windows x64 调用者预留参数影子空间。
+   140001536:	55                   	push   rbp
+   140001537:	48 89 e5             	mov    rbp,rsp
+   14000153a:	48 83 ec 20          	sub    rsp,0x20
+   14000153e:	e8 ed 00 00 00       	call   140001630 <__main>
+; RIP 相对寻址取得全局 table 的地址，传入 check。
+   140001543:	48 8d 05 b6 2a 00 00 	lea    rax,[rip+0x2ab6]        # 140004000 <table>
+; 全局版：RCX=数组地址，调用 check。局部版此处仍在初始化数组。
+   14000154a:	48 89 c1             	mov    rcx,rax
+   14000154d:	e8 3e ff ff ff       	call   140001490 <check>
+   140001552:	b8 00 00 00 00       	mov    eax,0x0
+   140001557:	48 83 c4 20          	add    rsp,0x20
+   14000155b:	5d                   	pop    rbp
+   14000155c:	c3                   	ret
+   14000155d:	90                   	nop
+   14000155e:	90                   	nop
+   14000155f:	90                   	nop
+
+
+
+
+
+0000000140001490 <check>:
+; check：RCX 是表首地址，保存到 [rbp+10h]；row 在 [rbp-4]，column 在 [rbp-8]。
+   140001490:	55                   	push   rbp
+   140001491:	48 89 e5             	mov    rbp,rsp
+   140001494:	48 83 ec 30          	sub    rsp,0x30
+   140001498:	48 89 4d 10          	mov    QWORD PTR [rbp+0x10],rcx
+   14000149c:	48 8d 05 ae 2b 00 00 	lea    rax,[rip+0x2bae]        # 140004051 <table+0x51>
+   1400014a3:	48 89 c1             	mov    rcx,rax
+   1400014a6:	e8 2d 15 00 00       	call   1400029d8 <puts>
+; row=0，进入外层循环。
+   1400014ab:	c7 45 fc 00 00 00 00 	mov    DWORD PTR [rbp-0x4],0x0
+   1400014b2:	eb 66                	jmp    14000151a <check+0x8a>
+; 每行开始时 column=0。
+   1400014b4:	c7 45 f8 00 00 00 00 	mov    DWORD PTR [rbp-0x8],0x0
+   1400014bb:	eb 53                	jmp    140001510 <check+0x80>
+; 计算行偏移：row<<3 加 row，得到 row*9，再加表首地址。
+   1400014bd:	8b 55 fc             	mov    edx,DWORD PTR [rbp-0x4]
+   1400014c0:	48 89 d0             	mov    rax,rdx
+   1400014c3:	48 c1 e0 03          	shl    rax,0x3
+   1400014c7:	48 01 c2             	add    rdx,rax
+   1400014ca:	48 8b 45 10          	mov    rax,QWORD PTR [rbp+0x10]
+   1400014ce:	48 01 c2             	add    rdx,rax
+; 加列偏移，MOVZX 读入一个无符号字节。
+   1400014d1:	8b 45 f8             	mov    eax,DWORD PTR [rbp-0x8]
+   1400014d4:	0f b6 04 02          	movzx  eax,BYTE PTR [rdx+rax*1]
+   1400014d8:	0f b6 d0             	movzx  edx,al
+; 计算 (row+1)*(column+1)，IMUL 得到应有乘积。
+   1400014db:	8b 45 fc             	mov    eax,DWORD PTR [rbp-0x4]
+   1400014de:	8d 48 01             	lea    ecx,[rax+0x1]
+   1400014e1:	8b 45 f8             	mov    eax,DWORD PTR [rbp-0x8]
+   1400014e4:	83 c0 01             	add    eax,0x1
+   1400014e7:	0f af c1             	imul   eax,ecx
+; 比较实际值和应有乘积，相等则跳过错误输出。
+   1400014ea:	39 c2                	cmp    edx,eax
+   1400014ec:	74 1e                	je     14000150c <check+0x7c>
+; 错误时准备输出参数：EDX=row+1，R8D=column+1，RCX=格式字符串。
+   1400014ee:	8b 45 f8             	mov    eax,DWORD PTR [rbp-0x8]
+   1400014f1:	8d 48 01             	lea    ecx,[rax+0x1]
+   1400014f4:	8b 45 fc             	mov    eax,DWORD PTR [rbp-0x4]
+   1400014f7:	8d 50 01             	lea    edx,[rax+0x1]
+   1400014fa:	48 8d 05 54 2b 00 00 	lea    rax,[rip+0x2b54]        # 140004055 <table+0x55>
+   140001501:	41 89 c8             	mov    r8d,ecx
+   140001504:	48 89 c1             	mov    rcx,rax
+   140001507:	e8 34 13 00 00       	call   140002840 <printf>
+; column++，column<=8 时继续内层循环。
+   14000150c:	83 45 f8 01          	add    DWORD PTR [rbp-0x8],0x1
+   140001510:	83 7d f8 08          	cmp    DWORD PTR [rbp-0x8],0x8
+   140001514:	76 a7                	jbe    1400014bd <check+0x2d>
+; row++，row<=8 时继续外层循环。
+   140001516:	83 45 fc 01          	add    DWORD PTR [rbp-0x4],0x1
+   14000151a:	83 7d fc 08          	cmp    DWORD PTR [rbp-0x4],0x8
+   14000151e:	76 94                	jbe    1400014b4 <check+0x24>
+; 输出 accomplish!，随后释放栈帧并返回。
+   140001520:	48 8d 05 3b 2b 00 00 	lea    rax,[rip+0x2b3b]        # 140004062 <table+0x62>
+   140001527:	48 89 c1             	mov    rcx,rax
+   14000152a:	e8 a9 14 00 00       	call   1400029d8 <puts>
+   14000152f:	90                   	nop
+   140001530:	48 83 c4 30          	add    rsp,0x30
+   140001534:	5d                   	pop    rbp
+   140001535:	c3                   	ret
